@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Play, Square, Target, Route, Zap } from 'lucide-react';
 
 interface TutorialProps {

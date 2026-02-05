@@ -18,7 +18,6 @@ import {
     SpeedType,
     ToolType,
     HeuristicType,
-    ALGORITHM_INFO
 } from '../../types';
 import {
     recursiveDivisionMaze,
