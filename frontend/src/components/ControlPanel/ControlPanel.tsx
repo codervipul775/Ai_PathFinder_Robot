@@ -11,6 +11,7 @@ import {
     Zap,
     Box,
     Wind,
+    X,
 } from 'lucide-react';
 import { useGridStore } from '../../store/gridStore';
 import {
@@ -28,7 +29,12 @@ import {
 import { NodeType, TerrainType } from '../../types';
 import StatsPanel from '../StatsPanel/StatsPanel';
 
-const ControlPanel = () => {
+interface ControlPanelProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+const ControlPanel = ({ isOpen, onClose }: ControlPanelProps) => {
     const {
         selectedAlgorithm,
         currentTool,
@@ -121,12 +127,24 @@ const ControlPanel = () => {
     };
 
     return (
-        <aside className="sidebar">
+        <aside className={`sidebar ${isOpen ? 'active' : ''}`}>
+            {onClose && (
+                <button
+                    className="mobile-close-btn"
+                    onClick={onClose}
+                    aria-label="Close menu"
+                >
+                    <X size={24} />
+                </button>
+            )}
             {/* Main Actions Panel */}
             <div className="panel" style={{ border: '1px solid var(--accent-purple)', background: 'rgba(139, 92, 246, 0.05)' }}>
                 <button
                     className="btn-primary"
-                    onClick={handleVisualize}
+                    onClick={() => {
+                        handleVisualize();
+                        if (onClose) onClose();
+                    }}
                     disabled={isRunning || !startNode || !endNode}
                 >
                     <Zap size={20} fill="currentColor" />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Bot, HelpCircle } from 'lucide-react';
+import { Bot, HelpCircle, Menu, X } from 'lucide-react';
 import { Grid, ControlPanel, Tutorial, Toast } from './components';
 import type { ToastType } from './components';
 import './index.css';
@@ -14,6 +14,8 @@ declare global {
 
 function App() {
   const [showTutorial, setShowTutorial] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType; visible: boolean }>({
     message: '',
     type: 'info',
@@ -21,6 +23,16 @@ function App() {
   });
 
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth > 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
     const hasSeenTutorial = localStorage.getItem('pathfinder-tutorial-seen');
     if (!hasSeenTutorial) {
       setShowTutorial(true);
@@ -29,6 +41,8 @@ function App() {
     window.showToast = (message: string, type: ToastType) => {
       setToast({ message, type, visible: true });
     };
+
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const handleCloseTutorial = () => {
@@ -41,31 +55,36 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <div className={`app ${isMobile ? 'mobile' : ''}`}>
       <header className="header">
         <div className="logo">
           <div className="logo-icon">
-            <Bot size={28} />
+            <Bot size={window.innerWidth <= 480 ? 20 : 28} />
           </div>
-          <span style={{ marginLeft: '12px', letterSpacing: '-1px' }}>AI PATHFINDER</span>
+          <span className="logo-text">AI PATHFINDER</span>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button
-            className="tool-btn"
+            className="tool-btn tutorial-toggle-btn"
             onClick={() => setShowTutorial(true)}
-            style={{ width: 'auto', padding: '0 20px', height: '44px', borderRadius: '12px' }}
           >
             <HelpCircle size={18} />
-            Tutorial
+            <span className="hide-mobile">Tutorial</span>
           </button>
+          {isMobile && (
+            <button
+              className={`tool-btn menu-toggle-btn ${isMobileMenuOpen ? 'active' : ''}`}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          )}
         </div>
       </header>
 
-      <main className="main-content" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <ControlPanel />
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          <Grid />
-        </div>
+      <main className="main-content">
+        <ControlPanel isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+        <Grid />
       </main>
 
       <AnimatePresence>

@@ -29,10 +29,25 @@ const Grid = () => {
     const [robotPosition, setRobotPosition] = useState<{ row: number; col: number } | null>(null);
     const gridRef = useRef<HTMLDivElement>(null);
 
-    // Initialize grid on mount
+    // Initialize grid with responsive dimensions
     useEffect(() => {
-        initializeGrid(25, 50);
-    }, [initializeGrid]);
+        const handleResize = () => {
+            if (isRunning) return; // Don't re-init while running
+
+            const isMobile = window.innerWidth <= 768;
+            const newRows = isMobile ? 20 : 25;
+            const newCols = isMobile ? 20 : 50;
+
+            // Re-init if dimensions changed OR if grid is empty
+            if (newRows !== rows || newCols !== cols || grid.length === 0) {
+                initializeGrid(newRows, newCols);
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [initializeGrid, rows, cols, isRunning, grid.length]);
 
     // Handle cell click/drag
     const handleCellInteraction = useCallback(
@@ -200,67 +215,69 @@ const Grid = () => {
 
     return (
         <div className="grid-container">
-            <div className="grid-wrapper">
-                <div
-                    ref={gridRef}
-                    className="grid"
-                    style={{
-                        gridTemplateColumns: `repeat(${cols}, 24px)`,
-                        gridTemplateRows: `repeat(${rows}, 24px)`,
-                    }}
-                    onMouseLeave={() => setIsMouseDown(false)}
-                >
-                    {grid.map((row, rowIdx) =>
-                        row.map((node, colIdx) => (
-                            <motion.div
-                                key={`${rowIdx}-${colIdx}`}
-                                className={getCellClass(node)}
-                                onMouseDown={() => {
-                                    setIsMouseDown(true);
-                                    handleCellInteraction(rowIdx, colIdx);
-                                }}
-                                onMouseUp={() => setIsMouseDown(false)}
-                                onMouseEnter={() => {
-                                    if (isMouseDown && currentTool !== 'start' && currentTool !== 'end') {
+            <div className="grid-viewport">
+                <div className="grid-wrapper">
+                    <div
+                        ref={gridRef}
+                        className="grid"
+                        style={{
+                            gridTemplateColumns: `repeat(${cols}, 24px)`,
+                            gridTemplateRows: `repeat(${rows}, 24px)`,
+                        }}
+                        onMouseLeave={() => setIsMouseDown(false)}
+                    >
+                        {grid.map((row, rowIdx) =>
+                            row.map((node, colIdx) => (
+                                <motion.div
+                                    key={`${rowIdx}-${colIdx}`}
+                                    className={getCellClass(node)}
+                                    onMouseDown={() => {
+                                        setIsMouseDown(true);
                                         handleCellInteraction(rowIdx, colIdx);
-                                    }
-                                }}
-                                initial={false}
-                                whileHover={{ scale: 1.1 }}
-                            />
-                        ))
-                    )}
-
-                    {/* 3D-look Robot Icon */}
-                    <AnimatePresence>
-                        {robotPosition && (
-                            <motion.div
-                                className="robot"
-                                initial={{ scale: 0, rotate: -45 }}
-                                animate={{
-                                    scale: 1,
-                                    rotate: 0,
-                                    left: robotPosition.col * 25 + 4,
-                                    top: robotPosition.row * 25 + 4,
-                                }}
-                                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                                style={{
-                                    position: 'absolute',
-                                    width: 18,
-                                    height: 18,
-                                }}
-                            >
-                                <div className="robot-3d-body">
-                                    <div className="robot-head"></div>
-                                    <div className="robot-eye"></div>
-                                </div>
-                            </motion.div>
+                                    }}
+                                    onMouseUp={() => setIsMouseDown(false)}
+                                    onMouseEnter={() => {
+                                        if (isMouseDown && currentTool !== 'start' && currentTool !== 'end') {
+                                            handleCellInteraction(rowIdx, colIdx);
+                                        }
+                                    }}
+                                    initial={false}
+                                    whileHover={{ scale: 1.1 }}
+                                />
+                            ))
                         )}
-                    </AnimatePresence>
+
+                        {/* 3D-look Robot Icon */}
+                        <AnimatePresence>
+                            {robotPosition && (
+                                <motion.div
+                                    className="robot"
+                                    initial={{ scale: 0, rotate: -45 }}
+                                    animate={{
+                                        scale: 1,
+                                        rotate: 0,
+                                        left: robotPosition.col * 24 + 3,
+                                        top: robotPosition.row * 24 + 3,
+                                    }}
+                                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                                    style={{
+                                        position: 'absolute',
+                                        width: 18,
+                                        height: 18,
+                                    }}
+                                >
+                                    <div className="robot-3d-body">
+                                        <div className="robot-head"></div>
+                                        <div className="robot-eye"></div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
 
-            {/* Legend - Fixed to be horizontal and properly aligned */}
+            {/* Legend - Outside viewport to allow wrapping to screen width */}
             <div className="legend">
                 <div className="legend-item">
                     <div className="legend-color start"></div>
