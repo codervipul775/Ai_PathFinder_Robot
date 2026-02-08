@@ -100,6 +100,8 @@ body {
 /* Sidebar Styling */
 .sidebar {
   width: 340px;
+  min-width: 340px;
+  flex-shrink: 0;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -109,6 +111,7 @@ body {
   background: var(--bg-panel);
   backdrop-filter: blur(24px) saturate(180%);
   border-right: 1px solid var(--border-glass);
+  z-index: 50;
 }
 
 .mobile-close-btn {
@@ -264,6 +267,8 @@ body {
   justify-content: center;
   padding: 40px;
   background: radial-gradient(circle at center, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+  overflow: hidden;
+  position: relative;
 }
 
 .grid-wrapper {
